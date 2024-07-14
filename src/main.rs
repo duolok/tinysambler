@@ -9,13 +9,13 @@ struct Addi {
 struct Sw {
     rs1: u8,
     rs2: u8,
-    offset: i16
+    offset: i16,
 }
 
 #[derive(Debug)]
-struct Instruction {
-    addi: Addi,
-    sw: Sw,
+enum Instruction {
+    Addi(Addi),
+    Sw(Sw),
 }
 
 impl Instruction {
@@ -39,8 +39,25 @@ fn assemble(input: Vec<u8>) -> Vec<u32> {
     unimplemented!();
 } 
 
-fn parse_instruction(tokens: Vec<Vec<u8>>) -> Instruction {
-    unimplemented!();
+fn parse_instruction(tokens: Vec<&str>) -> Option<Instruction> {
+    if tokens.is_empty()  { return None }
+
+    match tokens[0] {
+        "addi" => {
+            let rd = tokens[1][1..].parse().ok()?;
+            let rs1 = tokens[2][1..].parse().ok()?;
+            let imm = tokens[3].parse().ok()?;
+            Some(Instruction::Addi(Addi { rd, rs1, imm }))
+        }
+        "sw" => {
+            let rs1 = tokens[1][1..].parse().ok()?;
+            let rs2 = tokens[2][1..].parse().ok()?;
+            let offset = tokens[3].parse().ok()?;
+            Some(Instruction::Sw(Sw { rs1, rs2, offset }))
+        }
+        _ => None
+    }
+
 }
 
 fn main() {

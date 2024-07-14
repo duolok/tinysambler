@@ -24,11 +24,11 @@ impl Instruction {
     }
 }
 
-fn split_string_into_lines(input: [u8])  ->  String {
+fn split_string_into_lines(input: [u8])  ->  Vec<Vec<u8>> {
     unimplemented!()
 }
 
-fn split_string_by_whitespace(input: [u8]) -> String {
+fn split_string_by_whitespace(input: [u8]) -> Vec<Vec<u8>> {
     unimplemented!();
 }
 

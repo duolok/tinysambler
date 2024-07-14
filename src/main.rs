@@ -19,10 +19,14 @@ enum Instruction {
 }
 
 impl Instruction {
-    fn encode(self, instruction : Instruction) -> u32 {
-        match instruction {
-            Addi => 0b0,
-            Sw => 0b0,
+    fn encode(&self) -> u32 {
+        match self {
+            Instruction::Addi(addi) => {
+                0b0
+            },
+            Instruction::Sw(sw) => {
+                0b0
+            }
         }
     }
 }
@@ -35,14 +39,24 @@ fn split_string_by_whitespace(input: String) -> Vec<String> {
     input.split_whitespace().map(|s| s.to_string()).collect()
 }
 
-fn assemble(input: Vec<u8>) -> Vec<u32> {
-    unimplemented!();
+
+fn assemble(input: String) -> Vec<u32> {
+    let lines = split_string_into_lines(input);
+    let mut machine_codes = Vec::new();
+    for line in lines {
+        let tokens = split_string_by_whitespace(line);
+        if let Some(instruction) = parse_instruction(tokens) {
+            machine_codes.push(instruction.encode());
+        }
+    }
+    machine_codes
 } 
 
-fn parse_instruction(tokens: Vec<&str>) -> Option<Instruction> {
+
+fn parse_instruction(tokens: Vec<String>) -> Option<Instruction> {
     if tokens.is_empty()  { return None }
 
-    match tokens[0] {
+    match tokens[0].as_str() {
         "addi" => {
             //rd and rs1 are registers, which are indicated by a letter  followed by a number.
             //the [1..] slice removes the letter, leaving the number which is parsed into a u8.

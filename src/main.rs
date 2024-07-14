@@ -44,20 +44,34 @@ fn parse_instruction(tokens: Vec<&str>) -> Option<Instruction> {
 
     match tokens[0] {
         "addi" => {
+            //rd and rs1 are registers, which are indicated by a letter  followed by a number.
+            //the [1..] slice removes the letter, leaving the number which is parsed into a u8.
+
             let rd = tokens[1][1..].parse().ok()?;
             let rs1 = tokens[2][1..].parse().ok()?;
             let imm = tokens[3].parse().ok()?;
             Some(Instruction::Addi(Addi { rd, rs1, imm }))
         }
         "sw" => {
-            let rs1 = tokens[1][1..].parse().ok()?;
-            let rs2 = tokens[2][1..].parse().ok()?;
-            let offset = tokens[3].parse().ok()?;
+            if tokens.len() != 3 {
+                return None;
+            }
+            let rs2 = tokens[1][1..].parse().ok()?;
+
+            // split the third token on '(' or ')' to separate the offset and the rs1 register
+            let offset_and_rs1: Vec<&str> = tokens[2].split(|c| c == '(' || c == ')').collect();
+            if offset_and_rs1.len() != 2 {
+                return None
+            }
+
+            // parse the offset and rs1
+            let offset = offset_and_rs1[0].parse().ok()?;
+            let rs1 = offset_and_rs1[1][1..].parse().ok()?;
+
             Some(Instruction::Sw(Sw { rs1, rs2, offset }))
         }
         _ => None
     }
-
 }
 
 fn main() {

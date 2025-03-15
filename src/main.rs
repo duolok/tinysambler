@@ -1,14 +1,30 @@
+use std::fmt::Write;
+
+#[allow(unused_features)]
+
+// add immediate instruction
 #[derive(Debug)]
 struct Addi {
+    // destintaion register
     rd: u8,
+
+    // source register
     rs1: u8,
+
+    // immediate value
     imm: i16,
 }
 
+// store word
 #[derive(Debug)]
 struct Sw {
+    // store register 1
     rs1: u8,
+      
+    // store register 2
     rs2: u8,
+
+    // offset value
     offset: i16,
 }
 
@@ -22,7 +38,8 @@ impl Instruction {
     fn encode(&self) -> u32 {
         match self {
             Instruction::Addi(addi) => {
-                0b0
+                let imm = (addi.imm as u32) & 0xFFF;
+                0b0010011 | ((addi.rd as u32) << 7) | (0b000 << 12) | ((addi.rs1 as u32) << 15) | (imm << 20)
             },
             Instruction::Sw(sw) => {
                 0b0
@@ -88,11 +105,18 @@ fn parse_instruction(tokens: Vec<String>) -> Option<Instruction> {
     }
 }
 
-fn main() {
-    let input = String::from("test split whitespace  \n test split whitespace");
-    let ayo: Vec<String> = split_string_into_lines(input.clone());
-    let cool: Vec<String> = split_string_by_whitespace(input.clone());
+fn main() -> Result<(), String> {
+    let source_code = "addi x2 x2 -4\nsw x10 0(x2)";
+    
+    let machine_code = assemble(source_code.to_string());
+    
+    for code in machine_code {
+        let mut binary = String::new();
 
-    println!("{:?}", ayo);
-    println!("{:?}", cool);
+        write!(&mut binary, "{:032b}", code).unwrap();
+
+        println!("{}", binary);
+    }
+    
+    Ok(())
 }

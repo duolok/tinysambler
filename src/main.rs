@@ -35,6 +35,7 @@ enum Instruction {
 }
 
 impl Instruction {
+    // translaates aassembly instructions into machine code for a RISC-V cpu
     fn encode(&self) -> u32 {
         match self {
             Instruction::Addi(addi) => {
@@ -42,7 +43,9 @@ impl Instruction {
                 0b0010011 | ((addi.rd as u32) << 7) | (0b000 << 12) | ((addi.rs1 as u32) << 15) | (imm << 20)
             },
             Instruction::Sw(sw) => {
-                0b0
+                let imm11_5 = ((sw.offset as u32) & 0xFE0) << 20;
+                let imm4_0 = ((sw.offset as u32) & 0x1F) << 7;
+                0b010011 | imm4_0 | (0b010 << 12 ) | ((sw.rs1 as u32) << 15) | ((sw.rs2 as u32) << 20) | imm11_5
             }
         }
     }

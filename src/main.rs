@@ -36,6 +36,7 @@ enum Instruction {
 
 impl Instruction {
     // translaates aassembly instructions into machine code for a RISC-V cpu
+      
     fn encode(&self) -> u32 {
         match self {
             Instruction::Addi(addi) => {
@@ -45,7 +46,7 @@ impl Instruction {
             Instruction::Sw(sw) => {
                 let imm11_5 = ((sw.offset as u32) & 0xFE0) << 20;
                 let imm4_0 = ((sw.offset as u32) & 0x1F) << 7;
-                0b010011 | imm4_0 | (0b010 << 12 ) | ((sw.rs1 as u32) << 15) | ((sw.rs2 as u32) << 20) | imm11_5
+                0b0100011 | imm4_0 | (0b010 << 12 ) | ((sw.rs1 as u32) << 15) | ((sw.rs2 as u32) << 20) | imm11_5
             }
         }
     }
@@ -80,7 +81,6 @@ fn parse_instruction(tokens: Vec<String>) -> Option<Instruction> {
         "addi" => {
             //rd and rs1 are registers, which are indicated by a letter  followed by a number.
             //the [1..] slice removes the letter, leaving the number which is parsed into a u8.
-
             let rd = tokens[1][1..].parse().ok()?;
             let rs1 = tokens[2][1..].parse().ok()?;
             let imm = tokens[3].parse().ok()?;

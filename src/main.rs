@@ -123,3 +123,17 @@ fn main() -> Result<(), String> {
     
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_addi_encoding() {
+        let addi = Instruction::Addi(Addi { rd: 2, rs1: 2, imm: 4 });
+        let encoded = addi.encode();
+        let expected = 0b00000000010000010000000100010011;
+        assert_eq!(encoded, expected, "Failed encoding 'addi x2, x2, 4'\nExpected: {:#034b}\nActual:   {:#034b}", expected, encoded);
+    }
+}
+

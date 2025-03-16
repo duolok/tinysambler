@@ -221,7 +221,7 @@ impl Instruction {
 
             }
             Instruction::IType(itype) => {
-                let func3 = match itype.instruction {
+                let funct3 = match itype.instruction {
                     ITypeInstruction::Addi => 0b000,
                     ITypeInstruction::Slti => 0b010,
                     ITypeInstruction::Sltiu => 0b011,
@@ -246,10 +246,20 @@ impl Instruction {
                 };
 
                 let imm = (itype.imm as u32) & 0xFFF;
-
-                0b0010011 | ((itype.rd as u32) << 7) | (funct3 << 12) | ((itype.rs1 as u32) << 15) | (imm << 20)
+                opcode | ((itype.rd as u32) << 7) | (funct3 << 12) | ((itype.rs1 as u32) << 15) | (imm << 20)
             }
             Instruction::SType(stype) => {
+                let funct3 = match stype.instruction {
+                    STypeInstruction::Sb => 0b000,
+                    STypeInstruction::Sh => 0b010,
+                    STypeInstruction::Sw => 0b100,
+                };
+                
+
+                let imm11_5 = ((stype.imm as u32) & 0xFE0) << 20;
+                let imm4_0 = ((stype.imm as u32) & 0x1F) << 7;
+
+                0b0100011 | imm4_0 | (funct3 << 12) | ((stype.rs1 as u32) << 15) | ((stype.rs2 as u32) << 20) | imm11_5
             }
             Instruction::BType(btype) => {
             }

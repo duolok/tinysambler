@@ -85,6 +85,7 @@ impl Instruction {
       
     fn encode(&self) -> u32 {
         match self {
+            // S type instructions 
             Instruction::Addi(addi) => {
                 let imm = (addi.imm as u32) & 0xFFF;
                 0b0010011 | ((addi.rd as u32) << 7) | (0b000 << 12) | ((addi.rs1 as u32) << 15) | (imm << 20)
@@ -115,6 +116,7 @@ impl Instruction {
                 0b0010011 | ((andi.rd as u32) << 7) | (0b111 << 12) | ((andi.rs1 as u32) << 15) | (imm << 20)
 
             },
+
             Instruction::Sw(sw) => {
                 let imm11_5 = ((sw.offset as u32) & 0xFE0) << 20;
                 let imm4_0 = ((sw.offset as u32) & 0x1F) << 7;
@@ -154,11 +156,71 @@ fn parse_instruction(tokens: Vec<String>) -> Option<Instruction> {
         "addi" => {
             //rd and rs1 are registers, which are indicated by a letter  followed by a number.
             //the [1..] slice removes the letter, leaving the number which is parsed into a u8.
+            if tokens.len() != 4 {
+                return None;
+            }  
+
             let rd = tokens[1][1..].parse().ok()?;
             let rs1 = tokens[2][1..].parse().ok()?;
             let imm = tokens[3].parse().ok()?;
             Some(Instruction::Addi(Addi { rd, rs1, imm }))
         }
+
+        "slti" => {
+            if tokens.len() != 4 {
+                return None;
+            }  
+
+            let rd = tokens[1][1..].parse().ok()?;
+            let rs1 = tokens[2][1..].parse().ok()?;
+            let imm = tokens[3].parse().ok()?;
+            Some(Instruction::Slti(Slti { rd, rs1, imm }))
+        }
+
+        "sltiu" => {
+            if tokens.len() != 4 {
+                return None;
+            }  
+
+            let rd = tokens[1][1..].parse().ok()?;
+            let rs1 = tokens[2][1..].parse().ok()?;
+            let imm = tokens[3].parse().ok()?;
+            Some(Instruction::Sltiu(Sltiu { rd, rs1, imm }))
+        }
+
+        "Xori" => {
+            if tokens.len() != 4 {
+                return None;
+            }  
+
+            let rd = tokens[1][1..].parse().ok()?;
+            let rs1 = tokens[2][1..].parse().ok()?;
+            let imm = tokens[3].parse().ok()?;
+            Some(Instruction::Xori(Xori { rd, rs1, imm }))
+        }
+
+        "ori" => {
+            if tokens.len() != 4 {
+                return None;
+            }  
+
+            let rd = tokens[1][1..].parse().ok()?;
+            let rs1 = tokens[2][1..].parse().ok()?;
+            let imm = tokens[3].parse().ok()?;
+            Some(Instruction::Ori(Ori { rd, rs1, imm }))
+        }
+
+        "andi" => {
+            if tokens.len() != 4 {
+                return None;
+            }  
+
+            let rd = tokens[1][1..].parse().ok()?;
+            let rs1 = tokens[2][1..].parse().ok()?;
+            let imm = tokens[3].parse().ok()?;
+            Some(Instruction::Andi(Andi { rd, rs1, imm }))
+        }
+
         "sw" => {
             if tokens.len() != 3 {
                 return None;

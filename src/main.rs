@@ -1,6 +1,7 @@
 use std::fmt::Write;
 
 #[allow(unused_features)]
+#[allow(dead_code)]
 
 // add immediate instruction
 #[derive(Debug)]
@@ -29,8 +30,53 @@ struct Sw {
 }
 
 #[derive(Debug)]
+struct Slti {
+    rd: u8,
+    rs1: u8,
+    imm: u8,
+}
+
+#[derive(Debug)]
+struct Sltiu {
+    rd: u8,
+    rs1: u8,
+    imm: u8,
+}
+
+#[derive(Debug)]
+struct Xori {
+    rd: u8,
+    rs1: u8,
+    imm: u8,
+}
+
+#[derive(Debug)]
+struct Ori {
+    rd: u8,
+    rs1: u8,
+    imm: u8,
+}
+
+#[derive(Debug)]
+struct Andi {
+    rd: u8,
+    rs1: u8,
+    imm: u8,
+}
+
+
+
+#[derive(Debug)]
 enum Instruction {
+      
+    // S Type Instructions
     Addi(Addi),
+    Slti(Slti),
+    Sltiu(Sltiu),
+    Xori(Xori),
+    Ori(Ori),
+    Andi(Andi),
+
     Sw(Sw),
 }
 
@@ -43,11 +89,38 @@ impl Instruction {
                 let imm = (addi.imm as u32) & 0xFFF;
                 0b0010011 | ((addi.rd as u32) << 7) | (0b000 << 12) | ((addi.rs1 as u32) << 15) | (imm << 20)
             },
+            Instruction::Slti(slti) => {
+                let imm = (slti.imm as u32) & 0xFFF;
+                0b0010011 | ((slti.rd as u32) << 7) | (0b010 << 12) | ((slti.rs1 as u32) << 15) | (imm << 20)
+    
+            },
+            Instruction::Sltiu(sltiu) => {
+                let imm = (sltiu.imm as u32) & 0xFFF;
+                0b0010011 | ((sltiu.rd as u32) << 7) | (0b011 << 12) | ((sltiu.rs1 as u32) << 15) | (imm << 20)
+
+            },
+
+            Instruction::Xori(xori) => {
+                let imm = (xori.imm as u32) & 0xFFF;
+                0b0010011 | ((xori.rd as u32) << 7) | (0b100 << 12) | ((xori.rs1 as u32) << 15) | (imm << 20)
+
+            },
+            Instruction::Ori(ori) => {
+                let imm = (ori.imm as u32) & 0xFFF;
+                0b0010011 | ((ori.rd as u32) << 7) | (0b110 << 12) | ((ori.rs1 as u32) << 15) | (imm << 20)
+
+            },
+            Instruction::Andi(andi) => {
+                let imm = (andi.imm as u32) & 0xFFF;
+                0b0010011 | ((andi.rd as u32) << 7) | (0b111 << 12) | ((andi.rs1 as u32) << 15) | (imm << 20)
+
+            },
             Instruction::Sw(sw) => {
                 let imm11_5 = ((sw.offset as u32) & 0xFE0) << 20;
                 let imm4_0 = ((sw.offset as u32) & 0x1F) << 7;
                 0b0100011 | imm4_0 | (0b010 << 12 ) | ((sw.rs1 as u32) << 15) | ((sw.rs2 as u32) << 20) | imm11_5
-            }
+            },
+
         }
     }
 }

@@ -63,7 +63,57 @@ struct Andi {
     imm: u8,
 }
 
+enum RTypeInstruction {
+    Add,
+    Sub,
+    Sll,
+    Slt,
+    Sltu,
+    Srl,
+    Sra,
+    Xor,
+    Or,
+    And,
+}
 
+enum ITypeInstruction {
+    Addi,
+    Slti,
+    Sltiu,
+    Xori,
+    Ori,
+    Andi,
+    Lb,
+    Lh,
+    Lw,
+    Lbu,
+    Lhu,
+    Jalr,
+}
+
+enum STypeInstruction {
+    Sb,
+    Sh,
+    Sw,
+}
+
+enum BTypeInstruction {
+    Beq,
+    Bne,
+    Blt,
+    Bge,
+    BLtu,
+    Bgeu,
+}
+
+enum UTypeInstruction {
+    Lui,
+    Auipc,
+}
+
+enum JTypeInstruction {
+    Jal
+}
 
 #[derive(Debug)]
 enum Instruction {
@@ -84,7 +134,7 @@ impl Instruction {
       
     fn encode(&self) -> u32 {
         match self {
-            // S type instructions 
+            // I type instructions 
             Instruction::Addi(addi) => {
                 let imm = (addi.imm as u32) & 0xFFF;
                 0b0010011 | ((addi.rd as u32) << 7) | (0b000 << 12) | ((addi.rs1 as u32) << 15) | (imm << 20)
@@ -116,6 +166,7 @@ impl Instruction {
 
             },
 
+            // S type instructions
             Instruction::Sw(sw) => {
                 let imm11_5 = ((sw.offset as u32) & 0xFE0) << 20;
                 let imm4_0 = ((sw.offset as u32) & 0x1F) << 7;

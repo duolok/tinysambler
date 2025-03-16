@@ -176,15 +176,15 @@ enum Instruction {
     UType(UType),
     JType(JType),
 
-    // S Type Instructions
-    Addi(Addi),
-    Slti(Slti),
-    Sltiu(Sltiu),
-    Xori(Xori),
-    Ori(Ori),
-    Andi(Andi),
-
-    Sw(Sw),
+    // // S Type Instructions
+    // Addi(Addi),
+    // Slti(Slti),
+    // Sltiu(Sltiu),
+    // Xori(Xori),
+    // Ori(Ori),
+    // Andi(Andi),
+    //
+    // Sw(Sw),
 }
 
 impl Instruction {
@@ -221,7 +221,33 @@ impl Instruction {
 
             }
             Instruction::IType(itype) => {
+                let func3 = match itype.instruction {
+                    ITypeInstruction::Addi => 0b000,
+                    ITypeInstruction::Slti => 0b010,
+                    ITypeInstruction::Sltiu => 0b011,
+                    ITypeInstruction::Xori => 0b100,
+                    ITypeInstruction::Ori => 0b110,
+                    ITypeInstruction::Andi => 0b111,
+                    ITypeInstruction::Lb => 0b000,
+                    ITypeInstruction::Lh => 0b001,
+                    ITypeInstruction::Lw => 0b010,
+                    ITypeInstruction::Lbu => 0b100,
+                    ITypeInstruction::Lhu => 0b101,
+                    ITypeInstruction::Jalr => 0b000,
+                };
 
+
+                let opcode = match itype.instruction {
+                    ITypeInstruction::Addi | ITypeInstruction::Slti | ITypeInstruction::Sltiu | 
+                    ITypeInstruction::Xori | ITypeInstruction::Ori  | ITypeInstruction::Andi => 0b0010011,
+                    ITypeInstruction::Lb  | ITypeInstruction::Lh | ITypeInstruction::Lw |
+                    ITypeInstruction::Lbu | ITypeInstruction::Lhu => 0b0000011,
+                    ITypeInstruction::Jalr => 0b1100111,
+                };
+
+                let imm = (itype.imm as u32) & 0xFFF;
+
+                0b0010011 | ((itype.rd as u32) << 7) | (funct3 << 12) | ((itype.rs1 as u32) << 15) | (imm << 20)
             }
             Instruction::SType(stype) => {
             }
@@ -237,11 +263,7 @@ impl Instruction {
             // // I type instructions
             // Instruction::Addi(addi) => {
             //     let imm = (addi.imm as u32) & 0xFFF;
-            //     0b0010011
-            //         | ((addi.rd as u32) << 7)
-            //         | (0b000 << 12)
-            //         | ((addi.rs1 as u32) << 15)
-            //         | (imm << 20)
+            //     0b0010011 | ((addi.rd as u32) << 7) | (0b000 << 12) | ((addi.rs1 as u32) << 15) | (imm << 20)
             // }
             // Instruction::Slti(slti) => {
             //     let imm = (slti.imm as u32) & 0xFFF;
@@ -361,7 +383,7 @@ fn parse_instruction(tokens: Vec<String>) -> Option<Instruction> {
             Some(Instruction::Sltiu(Sltiu { rd, rs1, imm }))
         }
 
-        "Xori" => {
+        "xori" => {
             if tokens.len() != 4 {
                 return None;
             }

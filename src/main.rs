@@ -175,16 +175,6 @@ enum Instruction {
     BType(BType),
     UType(UType),
     JType(JType),
-
-    // // S Type Instructions
-    // Addi(Addi),
-    // Slti(Slti),
-    // Sltiu(Sltiu),
-    // Xori(Xori),
-    // Ori(Ori),
-    // Andi(Andi),
-    //
-    // Sw(Sw),
 }
 
 impl Instruction {
@@ -246,6 +236,7 @@ impl Instruction {
                 };
 
                 let imm = (itype.imm as u32) & 0xFFF;
+
                 opcode | ((itype.rd as u32) << 7) | (funct3 << 12) | ((itype.rs1 as u32) << 15) | (imm << 20)
             }
             Instruction::SType(stype) => {
@@ -262,72 +253,45 @@ impl Instruction {
                 0b0100011 | imm4_0 | (funct3 << 12) | ((stype.rs1 as u32) << 15) | ((stype.rs2 as u32) << 20) | imm11_5
             }
             Instruction::BType(btype) => {
+                let funct3 = match btype.instruction {
+                    BTypeInstruction::Beq  => 0b000,
+                    BTypeInstruction::Bne  => 0b001,
+                    BTypeInstruction::Blt  => 0b100,
+                    BTypeInstruction::Bge  => 0b101,
+                    BTypeInstruction::BLtu => 0b110,
+                    BTypeInstruction::Bgeu => 0b111,
+                };
+
+                let imm11 = ((btype.imm as u32) & 0x800) << 20;
+                let imm4_1 = ((btype.imm as u32) & 0x1E) << 7;
+                let imm10_5 = ((btype.imm as u32) & 0x7E0) << 20;
+                let imm12 = ((btype.imm as u32) & 0x1000) << 19;
+
+                0b1100011 | imm11 | imm4_1 | (funct3 << 12) | ((btype.rs1 as u32) << 15) | ((btype.rs2 as u32) << 20) | imm10_5 | imm12
+
             }
             Instruction::UType(utype) => {
+                let opcode = match utype.instruction {
+                    UTypeInstruction::Lui => 0b0110111,
+                    UTypeInstruction::Auipc => 0b0010111
+                };
+
+                let imm31_12 = (utype.imm as u32) << 12 & 0xFFFFF000;
+
+                opcode | ((utype.rd as u32) << 7) | imm31_12
+
             }
             Instruction::JType(jtype) => {
+                let imm20 = ((jtype.imm as u32) & 0x80000)  << 11;
+                let imm10_1 = ((jtype.imm as u32) & 0x7FE)  << 20;
+                let imm11 = ((jtype.imm as u32) & 0x100000) << 9;
+                let imm19_12 = ((jtype.imm as u32) & 0xFF000) << 1;
+                let opcode: u32 = 0b1101111;
+
+                opcode | ((jtype.rd as u32) << 7) | imm19_12 | imm11 | imm10_1 | imm20
+
             }
 
-
-
-            // // I type instructions
-            // Instruction::Addi(addi) => {
-            //     let imm = (addi.imm as u32) & 0xFFF;
-            //     0b0010011 | ((addi.rd as u32) << 7) | (0b000 << 12) | ((addi.rs1 as u32) << 15) | (imm << 20)
-            // }
-            // Instruction::Slti(slti) => {
-            //     let imm = (slti.imm as u32) & 0xFFF;
-            //     0b0010011
-            //         | ((slti.rd as u32) << 7)
-            //         | (0b010 << 12)
-            //         | ((slti.rs1 as u32) << 15)
-            //         | (imm << 20)
-            // }
-            // Instruction::Sltiu(sltiu) => {
-            //     let imm = (sltiu.imm as u32) & 0xFFF;
-            //     0b0010011
-            //         | ((sltiu.rd as u32) << 7)
-            //         | (0b011 << 12)
-            //         | ((sltiu.rs1 as u32) << 15)
-            //         | (imm << 20)
-            // }
-            //
-            // Instruction::Xori(xori) => {
-            //     let imm = (xori.imm as u32) & 0xFFF;
-            //     0b0010011
-            //         | ((xori.rd as u32) << 7)
-            //         | (0b100 << 12)
-            //         | ((xori.rs1 as u32) << 15)
-            //         | (imm << 20)
-            // }
-            // Instruction::Ori(ori) => {
-            //     let imm = (ori.imm as u32) & 0xFFF;
-            //     0b0010011
-            //         | ((ori.rd as u32) << 7)
-            //         | (0b110 << 12)
-            //         | ((ori.rs1 as u32) << 15)
-            //         | (imm << 20)
-            // }
-            // Instruction::Andi(andi) => {
-            //     let imm = (andi.imm as u32) & 0xFFF;
-            //     0b0010011
-            //         | ((andi.rd as u32) << 7)
-            //         | (0b111 << 12)
-            //         | ((andi.rs1 as u32) << 15)
-            //         | (imm << 20)
-            // }
-            //
-            // // S type instructions
-            // Instruction::Sw(sw) => {
-            //     let imm11_5 = ((sw.offset as u32) & 0xFE0) << 20;
-            //     let imm4_0 = ((sw.offset as u32) & 0x1F) << 7;
-            //     0b0100011
-            //         | imm4_0
-            //         | (0b010 << 12)
-            //         | ((sw.rs1 as u32) << 15)
-            //         | ((sw.rs2 as u32) << 20)
-            //         | imm11_5
-            // }
         }
     }
 }

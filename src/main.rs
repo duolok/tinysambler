@@ -1,66 +1,6 @@
 use std::fmt::Write;
 
 #[allow(unused_features)]
-// add immediate instruction
-#[derive(Debug)]
-struct Addi {
-    // destintaion register
-    rd: u8,
-
-    // source register
-    rs1: u8,
-
-    // immediate value
-    imm: i16,
-}
-
-// store word
-#[derive(Debug)]
-struct Sw {
-    // store register 1
-    rs1: u8,
-
-    // store register 2
-    rs2: u8,
-
-    // offset value
-    offset: i16,
-}
-
-#[derive(Debug)]
-struct Slti {
-    rd: u8,
-    rs1: u8,
-    imm: u8,
-}
-
-#[derive(Debug)]
-struct Sltiu {
-    rd: u8,
-    rs1: u8,
-    imm: u8,
-}
-
-#[derive(Debug)]
-struct Xori {
-    rd: u8,
-    rs1: u8,
-    imm: u8,
-}
-
-#[derive(Debug)]
-struct Ori {
-    rd: u8,
-    rs1: u8,
-    imm: u8,
-}
-
-#[derive(Debug)]
-struct Andi {
-    rd: u8,
-    rs1: u8,
-    imm: u8,
-}
 
 #[derive(Debug)]
 enum RTypeInstruction {
@@ -105,7 +45,7 @@ enum BTypeInstruction {
     Bne,
     Blt,
     Bge,
-    BLtu,
+    Bltu,
     Bgeu,
 }
 
@@ -128,13 +68,12 @@ struct RType {
     rs2: u8,
 }
 
-
 #[derive(Debug)]
 struct IType {
     instruction: ITypeInstruction,
     rd: u8,
     rs1: u8,
-    imm: i16,
+    imm: u16,
 }
 
 #[derive(Debug)]
@@ -142,7 +81,7 @@ struct SType {
     instruction: STypeInstruction,
     rs1: u8,
     rs2: u8,
-    imm: i16,
+    imm: u16,
 }
 
 #[derive(Debug)]
@@ -150,21 +89,21 @@ struct BType {
     instruction: BTypeInstruction,
     rs1: u8,
     rs2: u8,
-    imm: i16,
+    imm: u16,
 }
 
 #[derive(Debug)]
 struct UType {
     instruction: UTypeInstruction,
     rd: u8,
-    imm: i32,
+    imm: u32,
 }
 
 #[derive(Debug)]
 struct JType {
-    instruction: JTypeInstruction,
+    _instruction: JTypeInstruction,
     rd: u8,
-    imm: i32,
+    imm: u32,
 }
 
 #[derive(Debug)]
@@ -207,8 +146,7 @@ impl Instruction {
                     RTypeInstruction::And => 0b0000000,
                 };
 
-               0b110011 | ((rtype.rd as u32) << 7) | (funct3 << 12)  | ((rtype.rs1 as u32) << 15) | ((rtype.rs2 as u32) << 20) | (funct7 << 25)
-
+                0b110011 | ((rtype.rd as u32) << 7) | (funct3 << 12) | ((rtype.rs1 as u32) << 15) | ((rtype.rs2 as u32) << 20) | (funct7 << 25)
             }
             Instruction::IType(itype) => {
                 let funct3 = match itype.instruction {
@@ -226,12 +164,18 @@ impl Instruction {
                     ITypeInstruction::Jalr => 0b000,
                 };
 
-
                 let opcode = match itype.instruction {
-                    ITypeInstruction::Addi | ITypeInstruction::Slti | ITypeInstruction::Sltiu | 
-                    ITypeInstruction::Xori | ITypeInstruction::Ori  | ITypeInstruction::Andi => 0b0010011,
-                    ITypeInstruction::Lb  | ITypeInstruction::Lh | ITypeInstruction::Lw |
-                    ITypeInstruction::Lbu | ITypeInstruction::Lhu => 0b0000011,
+                    ITypeInstruction::Addi
+                    | ITypeInstruction::Slti
+                    | ITypeInstruction::Sltiu
+                    | ITypeInstruction::Xori
+                    | ITypeInstruction::Ori
+                    | ITypeInstruction::Andi => 0b0010011,
+                    ITypeInstruction::Lb
+                    | ITypeInstruction::Lh
+                    | ITypeInstruction::Lw
+                    | ITypeInstruction::Lbu
+                    | ITypeInstruction::Lhu => 0b0000011,
                     ITypeInstruction::Jalr => 0b1100111,
                 };
 
@@ -245,7 +189,6 @@ impl Instruction {
                     STypeInstruction::Sh => 0b010,
                     STypeInstruction::Sw => 0b100,
                 };
-                
 
                 let imm11_5 = ((stype.imm as u32) & 0xFE0) << 20;
                 let imm4_0 = ((stype.imm as u32) & 0x1F) << 7;
@@ -254,11 +197,11 @@ impl Instruction {
             }
             Instruction::BType(btype) => {
                 let funct3 = match btype.instruction {
-                    BTypeInstruction::Beq  => 0b000,
-                    BTypeInstruction::Bne  => 0b001,
-                    BTypeInstruction::Blt  => 0b100,
-                    BTypeInstruction::Bge  => 0b101,
-                    BTypeInstruction::BLtu => 0b110,
+                    BTypeInstruction::Beq => 0b000,
+                    BTypeInstruction::Bne => 0b001,
+                    BTypeInstruction::Blt => 0b100,
+                    BTypeInstruction::Bge => 0b101,
+                    BTypeInstruction::Bltu => 0b110,
                     BTypeInstruction::Bgeu => 0b111,
                 };
 
@@ -268,30 +211,26 @@ impl Instruction {
                 let imm12 = ((btype.imm as u32) & 0x1000) << 19;
 
                 0b1100011 | imm11 | imm4_1 | (funct3 << 12) | ((btype.rs1 as u32) << 15) | ((btype.rs2 as u32) << 20) | imm10_5 | imm12
-
             }
             Instruction::UType(utype) => {
                 let opcode = match utype.instruction {
                     UTypeInstruction::Lui => 0b0110111,
-                    UTypeInstruction::Auipc => 0b0010111
+                    UTypeInstruction::Auipc => 0b0010111,
                 };
 
                 let imm31_12 = (utype.imm as u32) << 12 & 0xFFFFF000;
 
                 opcode | ((utype.rd as u32) << 7) | imm31_12
-
             }
             Instruction::JType(jtype) => {
-                let imm20 = ((jtype.imm as u32) & 0x80000)  << 11;
-                let imm10_1 = ((jtype.imm as u32) & 0x7FE)  << 20;
+                let imm20 = ((jtype.imm as u32) & 0x80000) << 11;
+                let imm10_1 = ((jtype.imm as u32) & 0x7FE) << 20;
                 let imm11 = ((jtype.imm as u32) & 0x100000) << 9;
                 let imm19_12 = ((jtype.imm as u32) & 0xFF000) << 1;
                 let opcode: u32 = 0b1101111;
 
                 opcode | ((jtype.rd as u32) << 7) | imm19_12 | imm11 | imm10_1 | imm20
-
             }
-
         }
     }
 }
@@ -310,6 +249,7 @@ fn assemble(input: String) -> Vec<u32> {
     for line in lines {
         let tokens = split_string_by_whitespace(line);
         if let Some(instruction) = parse_instruction(tokens) {
+            println!("Instruction parsed");
             machine_codes.push(instruction.encode());
         }
     }
@@ -317,99 +257,196 @@ fn assemble(input: String) -> Vec<u32> {
 }
 
 fn parse_instruction(tokens: Vec<String>) -> Option<Instruction> {
+    let _rtype_instructiions: [&str; 10] = [
+        "add", "sub", "sll", "slt", "sltu", "xor", "srl", "sra", "or", "and",
+    ];
+    let _itype_instructiions: [&str; 13] = [
+        "addi", "slti", "sltiu", "xori", "ori", "andi", "lb", "lh", "ln", "lw", "lbu", "lhu",
+        "jalr",
+    ];
+    let _stype_instructiions: [&str; 3] = ["sb", "sh", "sw"];
+    let _btype_instructiions: [&str; 6] = ["beq", "bne", "blt", "bge", "bltu", "bgeu"];
+    let _utype_instructiions: [&str; 2] = ["lui", "auipc"];
+    let _jtype_instructiions: [&str; 1] = ["jal"];
+
     if tokens.is_empty() {
         return None;
     }
 
+    println!("{:?}", &tokens);
+
     match tokens[0].as_str() {
-        "addi" => {
-            //rd and rs1 are registers, which are indicated by a letter  followed by a number.
-            //the [1..] slice removes the letter, leaving the number which is parsed into a u8.
-            if tokens.len() != 4 {
-                return None;
-            }
+        // R type instructions
+        "add" => parse_rtype(&tokens, RTypeInstruction::Add),
+        "sub" => parse_rtype(&tokens, RTypeInstruction::Sub),
+        "sll" => parse_rtype(&tokens, RTypeInstruction::Sll),
+        "slt" => parse_rtype(&tokens, RTypeInstruction::Slt),
+        "sltu" => parse_rtype(&tokens, RTypeInstruction::Sltu),
+        "xor" => parse_rtype(&tokens, RTypeInstruction::Xor),
+        "srl" => parse_rtype(&tokens, RTypeInstruction::Srl),
+        "sra" => parse_rtype(&tokens, RTypeInstruction::Sra),
+        "or" => parse_rtype(&tokens, RTypeInstruction::Or),
+        "and" => parse_rtype(&tokens, RTypeInstruction::And),
 
-            let rd = tokens[1][1..].parse().ok()?;
-            let rs1 = tokens[2][1..].parse().ok()?;
-            let imm = tokens[3].parse().ok()?;
-            Some(Instruction::Addi(Addi { rd, rs1, imm }))
-        }
+        // I type instructions
+        "addi" => parse_itype(&tokens, ITypeInstruction::Addi),
+        "slti" => parse_itype(&tokens, ITypeInstruction::Slti),
+        "sltiu" => parse_itype(&tokens, ITypeInstruction::Sltiu),
+        "xori" => parse_itype(&tokens, ITypeInstruction::Xori),
+        "ori" => parse_itype(&tokens, ITypeInstruction::Ori),
+        "andi" => parse_itype(&tokens, ITypeInstruction::Andi),
+        "lb" => parse_itype(&tokens, ITypeInstruction::Lb),
+        "lh" => parse_itype(&tokens, ITypeInstruction::Lh),
+        "lw" => parse_itype(&tokens, ITypeInstruction::Lw),
+        "lbu" => parse_itype(&tokens, ITypeInstruction::Lbu),
+        "lhu" => parse_itype(&tokens, ITypeInstruction::Lhu),
+        "jalr" => parse_itype(&tokens, ITypeInstruction::Jalr),
 
-        "slti" => {
-            if tokens.len() != 4 {
-                return None;
-            }
+        // S type instructions 
+        "sb" => parse_stype(&tokens, STypeInstruction::Sb),
+        "sh" => parse_stype(&tokens, STypeInstruction::Sh),
+        "sw" => parse_stype(&tokens, STypeInstruction::Sw),
+        
 
-            let rd = tokens[1][1..].parse().ok()?;
-            let rs1 = tokens[2][1..].parse().ok()?;
-            let imm = tokens[3].parse().ok()?;
-            Some(Instruction::Slti(Slti { rd, rs1, imm }))
-        }
+        // B type instructions
+        "beq" => parse_btype(&tokens, BTypeInstruction::Beq),
+        "bne" => parse_btype(&tokens, BTypeInstruction::Bne),
+        "blt" => parse_btype(&tokens, BTypeInstruction::Blt),
+        "bge" => parse_btype(&tokens, BTypeInstruction::Bge),
+        "bltu" => parse_btype(&tokens, BTypeInstruction::Bltu),
+        "bgeu" => parse_btype(&tokens, BTypeInstruction::Bgeu),
 
-        "sltiu" => {
-            if tokens.len() != 4 {
-                return None;
-            }
+        // U type instructions
+        "lui" => parse_utype(&tokens, UTypeInstruction::Lui),
+        "auipc" => parse_utype(&tokens, UTypeInstruction::Auipc),
 
-            let rd = tokens[1][1..].parse().ok()?;
-            let rs1 = tokens[2][1..].parse().ok()?;
-            let imm = tokens[3].parse().ok()?;
-            Some(Instruction::Sltiu(Sltiu { rd, rs1, imm }))
-        }
+        // J type instructions
+        "jal" => parse_jtype(&tokens),
 
-        "xori" => {
-            if tokens.len() != 4 {
-                return None;
-            }
-
-            let rd = tokens[1][1..].parse().ok()?;
-            let rs1 = tokens[2][1..].parse().ok()?;
-            let imm = tokens[3].parse().ok()?;
-            Some(Instruction::Xori(Xori { rd, rs1, imm }))
-        }
-
-        "ori" => {
-            if tokens.len() != 4 {
-                return None;
-            }
-
-            let rd = tokens[1][1..].parse().ok()?;
-            let rs1 = tokens[2][1..].parse().ok()?;
-            let imm = tokens[3].parse().ok()?;
-            Some(Instruction::Ori(Ori { rd, rs1, imm }))
-        }
-
-        "andi" => {
-            if tokens.len() != 4 {
-                return None;
-            }
-
-            let rd = tokens[1][1..].parse().ok()?;
-            let rs1 = tokens[2][1..].parse().ok()?;
-            let imm = tokens[3].parse().ok()?;
-            Some(Instruction::Andi(Andi { rd, rs1, imm }))
-        }
-
-        "sw" => {
-            if tokens.len() != 3 {
-                return None;
-            }
-            let rs2 = tokens[1][1..].parse().ok()?;
-
-            // split the third token on '(' or ')' to separate the offset and the rs1 register
-            let offset_and_rs1: Vec<&str> = tokens[2].split(|c| c == '(' || c == ')').collect();
-            if offset_and_rs1.len() != 2 {
-                return None;
-            }
-
-            // parse the offset and rs1
-            let offset = offset_and_rs1[0].parse().ok()?;
-            let rs1 = offset_and_rs1[1][1..].parse().ok()?;
-
-            Some(Instruction::Sw(Sw { rs1, rs2, offset }))
-        }
         _ => None,
     }
+}
+
+fn parse_offset_rs1(s: &str) -> Option<(u16, u8)> {
+    let parts: Vec<&str> = s.split(|c| c == '(' || c == ')').collect();
+    if parts.len() != 2 {
+        return None;
+    }
+    let offset: u16 = parts[0].parse().ok()?;
+    let rs1 = parse_register(parts[1])?;
+    Some((offset, rs1))
+}
+
+// currently only parsing registers x0-x31
+fn parse_register(reg: &str) -> Option<u8> {
+    if reg.starts_with('x') {
+        reg[1..].parse().ok()
+    } else {
+        None
+    }
+}
+
+fn parse_rtype(tokens: &[String], instruction: RTypeInstruction) -> Option<Instruction> {
+    if tokens.len() != 4 {
+        return None;
+    }
+
+    let rd = parse_register(&tokens[1])?;
+    let rs1 = parse_register(&tokens[2])?;
+    let rs2 = parse_register(&tokens[3])?;
+
+    Some(Instruction::RType(RType {
+        instruction,
+        rd,
+        rs1,
+        rs2,
+    }))
+}
+
+fn parse_itype(tokens: &[String], instruction: ITypeInstruction) -> Option<Instruction> {
+    if tokens.len() != 3 {
+        return None;
+    }
+
+    let rd = parse_register(&tokens[1])?;
+    let (imm, rs1) = parse_offset_rs1(&tokens[2])?;
+
+    Some(Instruction::IType(IType {
+        instruction,
+        rd,
+        rs1,
+        imm,
+    }))
+}
+
+fn parse_stype(tokens: &[String], instruction: STypeInstruction) -> Option<Instruction> {
+    if tokens.len() != 3 {
+        return None;
+    }
+    let rs2 = tokens[1][1..].parse().ok()?;
+
+    // split the third token on '(' or ')' to separate the offset and the rs1 register
+    let offset_and_rs1: Vec<&str> = tokens[2].split(|c| c == '(' || c == ')').collect();
+    if offset_and_rs1.len() != 2 {
+        return None;
+    }
+
+    // parse the offset and rs1
+    let imm = offset_and_rs1[0].parse().ok()?;
+    let rs1 = offset_and_rs1[1][1..].parse().ok()?;
+
+    Some(Instruction::SType(SType {
+        instruction,
+        rs1,
+        rs2,
+        imm,
+    }))
+}
+
+fn parse_btype(tokens: &[String], instruction: BTypeInstruction) -> Option<Instruction> {
+    if tokens.len() != 4 {
+        return None;
+    }
+
+    let rs1 = parse_register(&tokens[1])?;
+    let rs2 = parse_register(&tokens[2])?;
+    let imm: u16 = tokens[3].parse().ok()?;
+
+    Some(Instruction::BType(BType {
+        instruction,
+        rs1,
+        rs2,
+        imm,
+    }))
+}
+
+fn parse_utype(tokens: &[String], instruction: UTypeInstruction) -> Option<Instruction> {
+    if tokens.len() != 3 {
+        return None;
+    }
+
+    let rd = parse_register(&tokens[1])?;
+    let imm: u32 = tokens[2].parse().ok()?;
+
+    Some(Instruction::UType(UType {
+        instruction,
+        rd,
+        imm,
+    }))
+}
+
+fn parse_jtype(tokens: &[String]) -> Option<Instruction> {
+    if tokens.len() != 3 {
+        return None;
+    }
+
+    let rd = parse_register(&tokens[1])?;
+    let imm = tokens[2].parse().ok()?;
+    Some(Instruction::JType(JType {
+        _instruction: JTypeInstruction::Jal,
+        rd,
+        imm,
+    }))
 }
 
 fn main() -> Result<(), String> {
@@ -419,9 +456,7 @@ fn main() -> Result<(), String> {
 
     for code in machine_code {
         let mut binary = String::new();
-
         write!(&mut binary, "{:032b}", code).unwrap();
-
         println!("{}", binary);
     }
 
@@ -434,7 +469,8 @@ mod tests {
 
     #[test]
     fn test_addi_encoding() {
-        let addi = Instruction::Addi(Addi {
+        let addi = Instruction::IType(IType {
+            instruction: ITypeInstruction::Addi,
             rd: 2,
             rs1: 2,
             imm: 4,

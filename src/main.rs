@@ -1,7 +1,6 @@
 use std::fmt::Write;
 
 #[allow(unused_features)]
-#[allow(dead_code)]
 
 // add immediate instruction
 #[derive(Debug)]

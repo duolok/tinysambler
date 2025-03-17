@@ -126,13 +126,13 @@ impl Instruction {
                 let funct3 = match rtype.instruction {
                     RTypeInstruction::Add | RTypeInstruction::Sub => 0b000,
                     RTypeInstruction::Sll => 0b001,
-                    RTypeInstruction::Slt => 0b001,
-                    RTypeInstruction::Sltu => 0b001,
-                    RTypeInstruction::Xor => 0b001,
-                    RTypeInstruction::Srl => 0b001,
-                    RTypeInstruction::Sra => 0b001,
-                    RTypeInstruction::Or => 0b001,
-                    RTypeInstruction::And => 0b001,
+                    RTypeInstruction::Slt => 0b010,
+                    RTypeInstruction::Sltu => 0b011,
+                    RTypeInstruction::Xor => 0b100,
+                    RTypeInstruction::Srl => 0b101,
+                    RTypeInstruction::Sra => 0b101,
+                    RTypeInstruction::Or => 0b110,
+                    RTypeInstruction::And => 0b111,
                 };
 
                 let funct7 = match rtype.instruction {
@@ -380,7 +380,6 @@ fn parse_itype(tokens: &[String], instruction: ITypeInstruction, reg_map: &HashM
 }
 
 fn parse_stype(tokens: &[String], instruction: STypeInstruction) -> Option<Instruction> {
-    println!("{:?}", &tokens);
     if tokens.len() != 3 {
         return None;
     }
@@ -461,12 +460,125 @@ fn main() -> Result<(), String> {
     }
 
     Ok(())
+
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // R-Type Tests
+    #[test]
+    fn test_add_encoding() {
+        let add = Instruction::RType(RType {
+            instruction: RTypeInstruction::Add,
+            rd: 1,
+            rs1: 2,
+            rs2: 3,
+        });
+        assert_eq!(add.encode(), 0x003100B3);
+    }
+
+    #[test]
+    fn test_sub_encoding() {
+        let sub = Instruction::RType(RType {
+            instruction: RTypeInstruction::Sub,
+            rd: 1,
+            rs1: 2,
+            rs2: 3,
+        });
+        assert_eq!(sub.encode(), 0x403100B3);
+    }
+
+    #[test]
+    fn test_sll_encoding() {
+        let sll = Instruction::RType(RType {
+            instruction: RTypeInstruction::Sll,
+            rd: 1,
+            rs1: 2,
+            rs2: 3,
+        });
+        assert_eq!(sll.encode(), 0x003111B3);
+    }
+
+    #[test]
+    fn test_slt_encoding() {
+        let slt = Instruction::RType(RType {
+            instruction: RTypeInstruction::Slt,
+            rd: 1,
+            rs1: 2,
+            rs2: 3,
+        });
+        assert_eq!(slt.encode(), 0x003121B3);
+    }
+
+    #[test]
+    fn test_sltu_encoding() {
+        let sltu = Instruction::RType(RType {
+            instruction: RTypeInstruction::Sltu,
+            rd: 1,
+            rs1: 2,
+            rs2: 3,
+        });
+        assert_eq!(sltu.encode(), 0x003131B3);
+    }
+
+    #[test]
+    fn test_xor_encoding() {
+        let xor = Instruction::RType(RType {
+            instruction: RTypeInstruction::Xor,
+            rd: 1,
+            rs1: 2,
+            rs2: 3,
+        });
+        assert_eq!(xor.encode(), 0x003141B3);
+    }
+
+    #[test]
+    fn test_srl_encoding() {
+        let srl = Instruction::RType(RType {
+            instruction: RTypeInstruction::Srl,
+            rd: 1,
+            rs1: 2,
+            rs2: 3,
+        });
+        assert_eq!(srl.encode(), 0x003151B3);
+    }
+
+    #[test]
+    fn test_sra_encoding() {
+        let sra = Instruction::RType(RType {
+            instruction: RTypeInstruction::Sra,
+            rd: 1,
+            rs1: 2,
+            rs2: 3,
+        });
+        assert_eq!(sra.encode(), 0x403151B3);
+    }
+
+    #[test]
+    fn test_or_encoding() {
+        let or = Instruction::RType(RType {
+            instruction: RTypeInstruction::Or,
+            rd: 1,
+            rs1: 2,
+            rs2: 3,
+        });
+        assert_eq!(or.encode(), 0x003161B3);
+    }
+
+    #[test]
+    fn test_and_encoding() {
+        let and = Instruction::RType(RType {
+            instruction: RTypeInstruction::And,
+            rd: 1,
+            rs1: 2,
+            rs2: 3,
+        });
+        assert_eq!(and.encode(), 0x003171B3);
+    }
+
+    // I-Type Tests
     #[test]
     fn test_addi_encoding() {
         let addi = Instruction::IType(IType {
@@ -475,12 +587,260 @@ mod tests {
             rs1: 2,
             imm: 4,
         });
-        let encoded = addi.encode();
-        let expected = 0b00000000010000010000000100010011;
-        assert_eq!(
-            encoded, expected,
-            "Failed encoding 'addi x2, x2, 4'\nExpected: {:#034b}\nActual:   {:#034b}",
-            expected, encoded
-        );
+        assert_eq!(addi.encode(), 0x00410113);
+    }
+
+    #[test]
+    fn test_slti_encoding() {
+        let slti = Instruction::IType(IType {
+            instruction: ITypeInstruction::Slti,
+            rd: 2,
+            rs1: 2,
+            imm: 4,
+        });
+        assert_eq!(slti.encode(), 0x00412113);
+    }
+
+    #[test]
+    fn test_sltiu_encoding() {
+        let sltiu = Instruction::IType(IType {
+            instruction: ITypeInstruction::Sltiu,
+            rd: 2,
+            rs1: 2,
+            imm: 4,
+        });
+        assert_eq!(sltiu.encode(), 0x00413113);
+    }
+
+    #[test]
+    fn test_xori_encoding() {
+        let xori = Instruction::IType(IType {
+            instruction: ITypeInstruction::Xori,
+            rd: 2,
+            rs1: 2,
+            imm: 4,
+        });
+        assert_eq!(xori.encode(), 0x00414113);
+    }
+
+    #[test]
+    fn test_ori_encoding() {
+        let ori = Instruction::IType(IType {
+            instruction: ITypeInstruction::Ori,
+            rd: 2,
+            rs1: 2,
+            imm: 4,
+        });
+        assert_eq!(ori.encode(), 0x00416113);
+    }
+
+    #[test]
+    fn test_andi_encoding() {
+        let andi = Instruction::IType(IType {
+            instruction: ITypeInstruction::Andi,
+            rd: 2,
+            rs1: 2,
+            imm: 4,
+        });
+        assert_eq!(andi.encode(), 0x00417113);
+    }
+
+    #[test]
+    fn test_lb_encoding() {
+        let lb = Instruction::IType(IType {
+            instruction: ITypeInstruction::Lb,
+            rd: 2,
+            rs1: 2,
+            imm: 4,
+        });
+        assert_eq!(lb.encode(), 0x00410103);
+    }
+
+    #[test]
+    fn test_lh_encoding() {
+        let lh = Instruction::IType(IType {
+            instruction: ITypeInstruction::Lh,
+            rd: 2,
+            rs1: 2,
+            imm: 4,
+        });
+        assert_eq!(lh.encode(), 0x00411103);
+    }
+
+    #[test]
+    fn test_lw_encoding() {
+        let lw = Instruction::IType(IType {
+            instruction: ITypeInstruction::Lw,
+            rd: 3,
+            rs1: 4,
+            imm: 8,
+        });
+        assert_eq!(lw.encode(), 0x00822183);
+    }
+
+    #[test]
+    fn test_lbu_encoding() {
+        let lbu = Instruction::IType(IType {
+            instruction: ITypeInstruction::Lbu,
+            rd: 2,
+            rs1: 2,
+            imm: 4,
+        });
+        assert_eq!(lbu.encode(), 0x00414103);
+    }
+
+    #[test]
+    fn test_lhu_encoding() {
+        let lhu = Instruction::IType(IType {
+            instruction: ITypeInstruction::Lhu,
+            rd: 2,
+            rs1: 2,
+            imm: 4,
+        });
+        assert_eq!(lhu.encode(), 0x00415103);
+    }
+
+    #[test]
+    fn test_jalr_encoding() {
+        let jalr = Instruction::IType(IType {
+            instruction: ITypeInstruction::Jalr,
+            rd: 1,
+            rs1: 2,
+            imm: 4,
+        });
+        assert_eq!(jalr.encode(), 0x00410067);
+    }
+
+    // S-Type Tests
+    #[test]
+    fn test_sb_encoding() {
+        let sb = Instruction::SType(SType {
+            instruction: STypeInstruction::Sb,
+            rs1: 2,
+            rs2: 10,
+            imm: 0,
+        });
+        assert_eq!(sb.encode(), 0x00A12023);
+    }
+
+    #[test]
+    fn test_sh_encoding() {
+        let sh = Instruction::SType(SType {
+            instruction: STypeInstruction::Sh,
+            rs1: 2,
+            rs2: 10,
+            imm: 0,
+        });
+        assert_eq!(sh.encode(), 0x00A11023);
+    }
+
+    #[test]
+    fn test_sw_encoding() {
+        let sw = Instruction::SType(SType {
+            instruction: STypeInstruction::Sw,
+            rs1: 2,
+            rs2: 10,
+            imm: 0,
+        });
+        assert_eq!(sw.encode(), 0x00A12023);
+    }
+
+    // B-Type Tests
+    #[test]
+    fn test_beq_encoding() {
+        let beq = Instruction::BType(BType {
+            instruction: BTypeInstruction::Beq,
+            rs1: 1,
+            rs2: 2,
+            imm: 16,
+        });
+        assert_eq!(beq.encode(), 0x00208663);
+    }
+
+    #[test]
+    fn test_bne_encoding() {
+        let bne = Instruction::BType(BType {
+            instruction: BTypeInstruction::Bne,
+            rs1: 1,
+            rs2: 2,
+            imm: 16,
+        });
+        assert_eq!(bne.encode(), 0x00209663);
+    }
+
+    #[test]
+    fn test_blt_encoding() {
+        let blt = Instruction::BType(BType {
+            instruction: BTypeInstruction::Blt,
+            rs1: 1,
+            rs2: 2,
+            imm: 16,
+        });
+        assert_eq!(blt.encode(), 0x0020C663);
+    }
+
+    #[test]
+    fn test_bge_encoding() {
+        let bge = Instruction::BType(BType {
+            instruction: BTypeInstruction::Bge,
+            rs1: 1,
+            rs2: 2,
+            imm: 16,
+        });
+        assert_eq!(bge.encode(), 0x0020D663);
+    }
+
+    #[test]
+    fn test_bltu_encoding() {
+        let bltu = Instruction::BType(BType {
+            instruction: BTypeInstruction::Bltu,
+            rs1: 1,
+            rs2: 2,
+            imm: 16,
+        });
+        assert_eq!(bltu.encode(), 0x0020E663);
+    }
+
+    #[test]
+    fn test_bgeu_encoding() {
+        let bgeu = Instruction::BType(BType {
+            instruction: BTypeInstruction::Bgeu,
+            rs1: 1,
+            rs2: 2,
+            imm: 16,
+        });
+        assert_eq!(bgeu.encode(), 0x0020F663);
+    }
+
+    // U-Type Tests
+    #[test]
+    fn test_lui_encoding() {
+        let lui = Instruction::UType(UType {
+            instruction: UTypeInstruction::Lui,
+            rd: 5,
+            imm: 0x12345,
+        });
+        assert_eq!(lui.encode(), 0x123455B7);
+    }
+
+    #[test]
+    fn test_auipc_encoding() {
+        let auipc = Instruction::UType(UType {
+            instruction: UTypeInstruction::Auipc,
+            rd: 5,
+            imm: 0x12345,
+        });
+        assert_eq!(auipc.encode(), 0x12345597);
+    }
+
+    // J-Type Tests
+    #[test]
+    fn test_jal_encoding() {
+        let jal = Instruction::JType(JType {
+            _instruction: JTypeInstruction::Jal,
+            rd: 1,
+            imm: 0x20000,
+        });
+        assert_eq!(jal.encode(), 0x200000EF);
     }
 }

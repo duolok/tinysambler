@@ -13,7 +13,7 @@ Tinysambler is an assembler for the RISC-V RV32I instruction set, written in Rus
 
 ## Features
 
-- **Complete RV32I Support**: Implements all 40 unique instructions of the RV32I base integer instruction set. :contentReference[oaicite:0]{index=0}
+- **Complete RV32I Support**: Implements all 40 unique instructions of the RV32I base integer instruction set.
 ![instructions](res/instruction_set_table.png)
 
 - **Efficient Assembly**: Converts RISC-V assembly code into machine code efficiently, leveraging Rust's performance and safety features.

@@ -148,7 +148,7 @@ impl Instruction {
                     RTypeInstruction::And => 0b0000000,
                 };
 
-                0b110011 | ((rtype.rd as u32) << 7) | (funct3 << 12) | ((rtype.rs1 as u32) << 15) | ((rtype.rs2 as u32) << 20) | (funct7 << 25)
+                0b0110011 | ((rtype.rd as u32) << 7) | (funct3 << 12) | ((rtype.rs1 as u32) << 15) | ((rtype.rs2 as u32) << 20) | (funct7 << 25)
             }
             Instruction::IType(itype) => {
                 let funct3 = match itype.instruction {
@@ -368,7 +368,7 @@ fn parse_itype(tokens: &[String], instruction: ITypeInstruction, reg_map: &HashM
     }
 
     let rd = parse_register(&tokens[1], &reg_map)?;
-    let rs1 =parse_register(&tokens[1], &reg_map)?; 
+    let rs1 =parse_register(&tokens[2], &reg_map)?; 
     let imm = tokens[3].parse::<i16>().ok()?;
 
     Some(Instruction::IType(IType {

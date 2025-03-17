@@ -368,11 +368,8 @@ fn parse_itype(tokens: &[String], instruction: ITypeInstruction, reg_map: &HashM
     }
 
     let rd = parse_register(&tokens[1], &reg_map)?;
-    println!("rd: {:?}", &rd);
     let rs1 =parse_register(&tokens[1], &reg_map)?; 
-    println!("rs1: {:?}", &rs1);
-    let imm = 5;
-    println!("imm: {:?}", &imm);
+    let imm = tokens[3].parse::<i16>().ok()?;
 
     Some(Instruction::IType(IType {
         instruction,

@@ -188,8 +188,8 @@ impl Instruction {
             Instruction::SType(stype) => {
                 let funct3 = match stype.instruction {
                     STypeInstruction::Sb => 0b000,
-                    STypeInstruction::Sh => 0b010,
-                    STypeInstruction::Sw => 0b100,
+                    STypeInstruction::Sh => 0b001,
+                    STypeInstruction::Sw => 0b010,
                 };
 
                 let imm11_5 = ((stype.imm as u32) & 0xFE0) << 20;

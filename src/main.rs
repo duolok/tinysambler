@@ -1,6 +1,8 @@
 use std::fmt::Write;
+use std::collections::HashMap;
 
 #[allow(unused_features)]
+
 
 #[derive(Debug)]
 enum RTypeInstruction {
@@ -73,7 +75,7 @@ struct IType {
     instruction: ITypeInstruction,
     rd: u8,
     rs1: u8,
-    imm: u16,
+    imm: i16,
 }
 
 #[derive(Debug)]
@@ -81,7 +83,7 @@ struct SType {
     instruction: STypeInstruction,
     rs1: u8,
     rs2: u8,
-    imm: u16,
+    imm: i16,
 }
 
 #[derive(Debug)]
@@ -89,21 +91,21 @@ struct BType {
     instruction: BTypeInstruction,
     rs1: u8,
     rs2: u8,
-    imm: u16,
+    imm: i16,
 }
 
 #[derive(Debug)]
 struct UType {
     instruction: UTypeInstruction,
     rd: u8,
-    imm: u32,
+    imm: i32,
 }
 
 #[derive(Debug)]
 struct JType {
     _instruction: JTypeInstruction,
     rd: u8,
-    imm: u32,
+    imm: i32,
 }
 
 #[derive(Debug)]
@@ -249,7 +251,7 @@ fn assemble(input: String) -> Vec<u32> {
     for line in lines {
         let tokens = split_string_by_whitespace(line);
         if let Some(instruction) = parse_instruction(tokens) {
-            println!("Instruction parsed");
+            println!("got machine code: {:?}", &instruction);
             machine_codes.push(instruction.encode());
         }
     }
@@ -257,50 +259,38 @@ fn assemble(input: String) -> Vec<u32> {
 }
 
 fn parse_instruction(tokens: Vec<String>) -> Option<Instruction> {
-    let _rtype_instructiions: [&str; 10] = [
-        "add", "sub", "sll", "slt", "sltu", "xor", "srl", "sra", "or", "and",
-    ];
-    let _itype_instructiions: [&str; 13] = [
-        "addi", "slti", "sltiu", "xori", "ori", "andi", "lb", "lh", "ln", "lw", "lbu", "lhu",
-        "jalr",
-    ];
-    let _stype_instructiions: [&str; 3] = ["sb", "sh", "sw"];
-    let _btype_instructiions: [&str; 6] = ["beq", "bne", "blt", "bge", "bltu", "bgeu"];
-    let _utype_instructiions: [&str; 2] = ["lui", "auipc"];
-    let _jtype_instructiions: [&str; 1] = ["jal"];
+    let reg_map = create_register_map();
 
     if tokens.is_empty() {
         return None;
     }
 
-    println!("{:?}", &tokens);
-
     match tokens[0].as_str() {
         // R type instructions
-        "add" => parse_rtype(&tokens, RTypeInstruction::Add),
-        "sub" => parse_rtype(&tokens, RTypeInstruction::Sub),
-        "sll" => parse_rtype(&tokens, RTypeInstruction::Sll),
-        "slt" => parse_rtype(&tokens, RTypeInstruction::Slt),
-        "sltu" => parse_rtype(&tokens, RTypeInstruction::Sltu),
-        "xor" => parse_rtype(&tokens, RTypeInstruction::Xor),
-        "srl" => parse_rtype(&tokens, RTypeInstruction::Srl),
-        "sra" => parse_rtype(&tokens, RTypeInstruction::Sra),
-        "or" => parse_rtype(&tokens, RTypeInstruction::Or),
-        "and" => parse_rtype(&tokens, RTypeInstruction::And),
+        "add" => parse_rtype(&tokens, RTypeInstruction::Add, &reg_map),
+        "sub" => parse_rtype(&tokens, RTypeInstruction::Sub, &reg_map),
+        "sll" => parse_rtype(&tokens, RTypeInstruction::Sll, &reg_map),
+        "slt" => parse_rtype(&tokens, RTypeInstruction::Slt, &reg_map),
+        "sltu" => parse_rtype(&tokens, RTypeInstruction::Sltu, &reg_map),
+        "xor" => parse_rtype(&tokens, RTypeInstruction::Xor, &reg_map),
+        "srl" => parse_rtype(&tokens, RTypeInstruction::Srl, &reg_map),
+        "sra" => parse_rtype(&tokens, RTypeInstruction::Sra, &reg_map),
+        "or" => parse_rtype(&tokens, RTypeInstruction::Or, &reg_map),
+        "and" => parse_rtype(&tokens, RTypeInstruction::And, &reg_map),
 
         // I type instructions
-        "addi" => parse_itype(&tokens, ITypeInstruction::Addi),
-        "slti" => parse_itype(&tokens, ITypeInstruction::Slti),
-        "sltiu" => parse_itype(&tokens, ITypeInstruction::Sltiu),
-        "xori" => parse_itype(&tokens, ITypeInstruction::Xori),
-        "ori" => parse_itype(&tokens, ITypeInstruction::Ori),
-        "andi" => parse_itype(&tokens, ITypeInstruction::Andi),
-        "lb" => parse_itype(&tokens, ITypeInstruction::Lb),
-        "lh" => parse_itype(&tokens, ITypeInstruction::Lh),
-        "lw" => parse_itype(&tokens, ITypeInstruction::Lw),
-        "lbu" => parse_itype(&tokens, ITypeInstruction::Lbu),
-        "lhu" => parse_itype(&tokens, ITypeInstruction::Lhu),
-        "jalr" => parse_itype(&tokens, ITypeInstruction::Jalr),
+        "addi" => parse_itype(&tokens, ITypeInstruction::Addi, &reg_map),
+        "slti" => parse_itype(&tokens, ITypeInstruction::Slti, &reg_map),
+        "sltiu" => parse_itype(&tokens, ITypeInstruction::Sltiu, &reg_map),
+        "xori" => parse_itype(&tokens, ITypeInstruction::Xori, &reg_map),
+        "ori" => parse_itype(&tokens, ITypeInstruction::Ori, &reg_map),
+        "andi" => parse_itype(&tokens, ITypeInstruction::Andi, &reg_map),
+        "lb" => parse_itype(&tokens, ITypeInstruction::Lb, &reg_map),
+        "lh" => parse_itype(&tokens, ITypeInstruction::Lh, &reg_map),
+        "lw" => parse_itype(&tokens, ITypeInstruction::Lw, &reg_map),
+        "lbu" => parse_itype(&tokens, ITypeInstruction::Lbu, &reg_map),
+        "lhu" => parse_itype(&tokens, ITypeInstruction::Lhu, &reg_map),
+        "jalr" => parse_itype(&tokens, ITypeInstruction::Jalr, &reg_map),
 
         // S type instructions 
         "sb" => parse_stype(&tokens, STypeInstruction::Sb),
@@ -309,51 +299,59 @@ fn parse_instruction(tokens: Vec<String>) -> Option<Instruction> {
         
 
         // B type instructions
-        "beq" => parse_btype(&tokens, BTypeInstruction::Beq),
-        "bne" => parse_btype(&tokens, BTypeInstruction::Bne),
-        "blt" => parse_btype(&tokens, BTypeInstruction::Blt),
-        "bge" => parse_btype(&tokens, BTypeInstruction::Bge),
-        "bltu" => parse_btype(&tokens, BTypeInstruction::Bltu),
-        "bgeu" => parse_btype(&tokens, BTypeInstruction::Bgeu),
+        "beq" => parse_btype(&tokens, BTypeInstruction::Beq, &reg_map),
+        "bne" => parse_btype(&tokens, BTypeInstruction::Bne, &reg_map),
+        "blt" => parse_btype(&tokens, BTypeInstruction::Blt, &reg_map),
+        "bge" => parse_btype(&tokens, BTypeInstruction::Bge, &reg_map),
+        "bltu" => parse_btype(&tokens, BTypeInstruction::Bltu, &reg_map),
+        "bgeu" => parse_btype(&tokens, BTypeInstruction::Bgeu, &reg_map),
 
         // U type instructions
-        "lui" => parse_utype(&tokens, UTypeInstruction::Lui),
-        "auipc" => parse_utype(&tokens, UTypeInstruction::Auipc),
+        "lui" => parse_utype(&tokens, UTypeInstruction::Lui, &reg_map),
+        "auipc" => parse_utype(&tokens, UTypeInstruction::Auipc, &reg_map),
 
         // J type instructions
-        "jal" => parse_jtype(&tokens),
+        "jal" => parse_jtype(&tokens, &reg_map),
 
         _ => None,
     }
 }
 
-fn parse_offset_rs1(s: &str) -> Option<(u16, u8)> {
-    let parts: Vec<&str> = s.split(|c| c == '(' || c == ')').collect();
-    if parts.len() != 2 {
-        return None;
+fn create_register_map() -> HashMap<&'static str, u8> {
+    let reg_names = [
+        "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0", "a1", "a2", "a3",
+        "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11",
+        "t3", "t4", "t5", "t6",
+    ];
+
+    let mut map = HashMap::new();
+    for (index, &name) in reg_names.iter().enumerate() {
+        map.insert(name, index as u8);
     }
-    let offset: u16 = parts[0].parse().ok()?;
-    let rs1 = parse_register(parts[1])?;
-    Some((offset, rs1))
+
+    map.insert("fp", 8);
+    map
 }
 
 // currently only parsing registers x0-x31
-fn parse_register(reg: &str) -> Option<u8> {
+fn parse_register(reg: &str, reg_map: &HashMap<&'static str, u8>) -> Option<u8> {
+    if reg.is_empty() { return None; }
+
     if reg.starts_with('x') {
-        reg[1..].parse().ok()
-    } else {
-        None
-    }
+        return reg[1..].parse::<u8>().ok();
+    } 
+    reg_map.get(reg).copied()
 }
 
-fn parse_rtype(tokens: &[String], instruction: RTypeInstruction) -> Option<Instruction> {
+fn parse_rtype(tokens: &[String], instruction: RTypeInstruction, reg_map: &HashMap<&'static str, u8>) -> Option<Instruction> {
     if tokens.len() != 4 {
         return None;
     }
 
-    let rd = parse_register(&tokens[1])?;
-    let rs1 = parse_register(&tokens[2])?;
-    let rs2 = parse_register(&tokens[3])?;
+    let rd = parse_register(&tokens[1], &reg_map)?;
+    println!("rd after parsing: {:?}", &rd);
+    let rs1 = parse_register(&tokens[2], &reg_map)?;
+    let rs2 = parse_register(&tokens[3], &reg_map)?;
 
     Some(Instruction::RType(RType {
         instruction,
@@ -363,13 +361,18 @@ fn parse_rtype(tokens: &[String], instruction: RTypeInstruction) -> Option<Instr
     }))
 }
 
-fn parse_itype(tokens: &[String], instruction: ITypeInstruction) -> Option<Instruction> {
-    if tokens.len() != 3 {
+fn parse_itype(tokens: &[String], instruction: ITypeInstruction, reg_map: &HashMap<&'static str, u8>) -> Option<Instruction> {
+    println!("{:?}", &tokens);
+    if tokens.len() != 4 {
         return None;
     }
 
-    let rd = parse_register(&tokens[1])?;
-    let (imm, rs1) = parse_offset_rs1(&tokens[2])?;
+    let rd = parse_register(&tokens[1], &reg_map)?;
+    println!("rd: {:?}", &rd);
+    let rs1 =parse_register(&tokens[1], &reg_map)?; 
+    println!("rs1: {:?}", &rs1);
+    let imm = 5;
+    println!("imm: {:?}", &imm);
 
     Some(Instruction::IType(IType {
         instruction,
@@ -403,14 +406,14 @@ fn parse_stype(tokens: &[String], instruction: STypeInstruction) -> Option<Instr
     }))
 }
 
-fn parse_btype(tokens: &[String], instruction: BTypeInstruction) -> Option<Instruction> {
+fn parse_btype(tokens: &[String], instruction: BTypeInstruction, reg_map: &HashMap<&'static str, u8>) -> Option<Instruction> {
     if tokens.len() != 4 {
         return None;
     }
 
-    let rs1 = parse_register(&tokens[1])?;
-    let rs2 = parse_register(&tokens[2])?;
-    let imm: u16 = tokens[3].parse().ok()?;
+    let rs1 = parse_register(&tokens[1], &reg_map)?;
+    let rs2 = parse_register(&tokens[2], &reg_map)?;
+    let imm: i16 = tokens[3].parse().ok()?;
 
     Some(Instruction::BType(BType {
         instruction,
@@ -420,13 +423,13 @@ fn parse_btype(tokens: &[String], instruction: BTypeInstruction) -> Option<Instr
     }))
 }
 
-fn parse_utype(tokens: &[String], instruction: UTypeInstruction) -> Option<Instruction> {
+fn parse_utype(tokens: &[String], instruction: UTypeInstruction, reg_map: &HashMap<&'static str, u8>) -> Option<Instruction> {
     if tokens.len() != 3 {
         return None;
     }
 
-    let rd = parse_register(&tokens[1])?;
-    let imm: u32 = tokens[2].parse().ok()?;
+    let rd = parse_register(&tokens[1], &reg_map)?;
+    let imm: i32 = tokens[2].parse().ok()?;
 
     Some(Instruction::UType(UType {
         instruction,
@@ -435,12 +438,12 @@ fn parse_utype(tokens: &[String], instruction: UTypeInstruction) -> Option<Instr
     }))
 }
 
-fn parse_jtype(tokens: &[String]) -> Option<Instruction> {
+fn parse_jtype(tokens: &[String],  reg_map: &HashMap<&'static str, u8>) -> Option<Instruction> {
     if tokens.len() != 3 {
         return None;
     }
 
-    let rd = parse_register(&tokens[1])?;
+    let rd = parse_register(&tokens[1], &reg_map)?;
     let imm = tokens[2].parse().ok()?;
     Some(Instruction::JType(JType {
         _instruction: JTypeInstruction::Jal,
@@ -451,8 +454,8 @@ fn parse_jtype(tokens: &[String]) -> Option<Instruction> {
 
 fn main() -> Result<(), String> {
     let source_code = "addi x2 x2 -4\nsw x10 0(x2)";
-
     let machine_code = assemble(source_code.to_string());
+    println!("{:?}", &machine_code);
 
     for code in machine_code {
         let mut binary = String::new();

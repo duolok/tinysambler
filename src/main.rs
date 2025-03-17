@@ -380,20 +380,20 @@ fn parse_itype(tokens: &[String], instruction: ITypeInstruction, reg_map: &HashM
 }
 
 fn parse_stype(tokens: &[String], instruction: STypeInstruction) -> Option<Instruction> {
+    println!("{:?}", &tokens);
     if tokens.len() != 3 {
         return None;
     }
+
     let rs2 = tokens[1][1..].parse().ok()?;
 
-    // split the third token on '(' or ')' to separate the offset and the rs1 register
-    let offset_and_rs1: Vec<&str> = tokens[2].split(|c| c == '(' || c == ')').collect();
-    if offset_and_rs1.len() != 2 {
-        return None;
+    let imm_and_rs1: Vec<&str> = tokens[2].split(|c| c == '(' || c == ')').filter(|x| !x.is_empty()).collect();
+    if imm_and_rs1.len() != 2 {
+        return None
     }
 
-    // parse the offset and rs1
-    let imm = offset_and_rs1[0].parse().ok()?;
-    let rs1 = offset_and_rs1[1][1..].parse().ok()?;
+    let imm = imm_and_rs1[0].parse().ok()?;
+    let rs1 = imm_and_rs1[1][1..].parse().ok()?;
 
     Some(Instruction::SType(SType {
         instruction,
@@ -450,7 +450,7 @@ fn parse_jtype(tokens: &[String],  reg_map: &HashMap<&'static str, u8>) -> Optio
 }
 
 fn main() -> Result<(), String> {
-    let source_code = "addi x2 x2 -4\nsw x10 0(x2)";
+    let source_code = "sw x10 0(x2)";
     let machine_code = assemble(source_code.to_string());
     println!("{:?}", &machine_code);
 

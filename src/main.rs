@@ -288,7 +288,7 @@ fn parse_instruction(tokens: Vec<String>) -> Option<Instruction> {
         "lh" => parse_itype(&tokens, ITypeInstruction::Lh, &reg_map),
         "lw" => parse_itype(&tokens, ITypeInstruction::Lw, &reg_map),
         "lbu" => parse_itype(&tokens, ITypeInstruction::Lbu, &reg_map),
-        "lhu" => parse_itype(&tokens, ITypeInstruction::Lhu, &reg_map),
+        "startupilhu" => parse_itype(&tokens, ITypeInstruction::Lhu, &reg_map),
         "jalr" => parse_itype(&tokens, ITypeInstruction::Jalr, &reg_map),
 
         // S type instructions 
@@ -348,7 +348,6 @@ fn parse_rtype(tokens: &[String], instruction: RTypeInstruction, reg_map: &HashM
     }
 
     let rd = parse_register(&tokens[1], &reg_map)?;
-    println!("rd after parsing: {:?}", &rd);
     let rs1 = parse_register(&tokens[2], &reg_map)?;
     let rs2 = parse_register(&tokens[3], &reg_map)?;
 
@@ -361,7 +360,6 @@ fn parse_rtype(tokens: &[String], instruction: RTypeInstruction, reg_map: &HashM
 }
 
 fn parse_itype(tokens: &[String], instruction: ITypeInstruction, reg_map: &HashMap<&'static str, u8>) -> Option<Instruction> {
-    println!("{:?}", &tokens);
     if tokens.len() != 4 {
         return None;
     }
